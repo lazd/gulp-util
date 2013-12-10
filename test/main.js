@@ -171,4 +171,71 @@ describe('gulp-util', function() {
     });
   });
 
+  describe('getNSDeclaration()', function() {
+    it('should return a correct declaration for root namespaces', function(done) {
+      var expected = {
+        namespace: 'this["Templates"]',
+        declaration: 'this["Templates"] = this["Templates"] || {};'
+      };
+      var actual;
+
+      // Both test should yeild the same result
+      actual = util.getNSDeclaration('this.Templates');
+      actual.namespace.should.equal(expected.namespace, 'namespace with square brackets incorrect');
+      actual.declaration.should.equal(expected.declaration, 'namespace declaration with square brackets incorrect');
+
+      actual = util.getNSDeclaration('Templates');
+      actual.namespace.should.equal(expected.namespace, 'namespace with square brackets incorrect');
+      actual.declaration.should.equal(expected.declaration, 'namespace declaration with square brackets incorrect');
+
+      done();
+    });
+
+    it('should return a correct declaration for nested namespaces', function(done) {
+      var expected = {
+        namespace: 'this["GUI"]["Templates"]["Main"]',
+        declaration:  'this["GUI"] = this["GUI"] || {};\n' +
+                      'this["GUI"]["Templates"] = this["GUI"]["Templates"] || {};\n' +
+                      'this["GUI"]["Templates"]["Main"] = this["GUI"]["Templates"]["Main"] || {};'
+      };
+
+      var actual = util.getNSDeclaration("GUI.Templates.Main");
+      actual.namespace.should.equal(expected.namespace, 'namespace incorrect');
+      actual.declaration.should.equal(expected.declaration, 'namespace declaration incorrect');
+
+      done();
+    });
+
+    it('should return no declaration and pass through "this" if "this" provided', function(done) {
+      var expected = {
+        namespace: 'this',
+        declaration: ''
+      };
+
+      var actual = util.getNSDeclaration('this');
+
+      actual.namespace.should.equal(expected.namespace, 'namespace with square brackets incorrect');
+      actual.declaration.should.equal(expected.declaration, 'namespace declaration with square brackets incorrect');
+
+      done();
+    });
+
+    it('should work with namespaces that contain square brackets', function(done) {
+      // Namespace that contains square brackets
+      var expected = {
+        namespace: 'this["main"]["[test]"]["[test2]"]',
+        declaration: 'this["main"] = this["main"] || {};\n' +
+                     'this["main"]["[test]"] = this["main"]["[test]"] || {};\n' +
+                     'this["main"]["[test]"]["[test2]"] = this["main"]["[test]"]["[test2]"] || {};'
+      };
+
+      var actual = util.getNSDeclaration("main.[test].[test2]");
+      actual.namespace.should.equal(expected.namespace, 'namespace with square brackets incorrect');
+      actual.declaration.should.equal(expected.declaration, 'namespace declaration with square brackets incorrect');
+
+      done();
+    });
+
+  });
+
 });
